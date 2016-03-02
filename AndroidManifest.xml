@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.crossbowffs.soundcloudadaway">
+    <uses-sdk
+        android:minSdkVersion="4"
+        android:targetSdkVersion="23"/>
+    <application
+        android:label="SoundCloud AdAway">
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true"/>
+        <meta-data
+            android:name="xposeddescription"
+            android:value="Removes ads in the SoundCloud app"/>
+        <meta-data
+            android:name="xposedminversion"
+            android:value="2"/>
+    </application>
+</manifest>
