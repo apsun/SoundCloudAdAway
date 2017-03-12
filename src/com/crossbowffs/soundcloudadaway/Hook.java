@@ -139,9 +139,7 @@ public class Hook implements IXposedHookLoadPackage {
     }
 
     private static void enableOfflineContent(XC_LoadPackage.LoadPackageParam lpparam) {
-        // Not sure if this actually does anything useful.
-        // Supposedly it enables listening to tracks while offline,
-        // but I can do that without this anyways, so...
+        // Enables downloading music for offline listening
         findAndHookMethod(
             "com.soundcloud.android.configuration.FeatureOperations", lpparam.classLoader,
             "isOfflineContentEnabled",
@@ -152,22 +150,29 @@ public class Hook implements IXposedHookLoadPackage {
         // This gives you a cool developer menu if you slide from the right edge.
         // It's not actually useful for anything though (no, you can't upgrade
         // to Go for free, I've tried)
-        findAndHookMethod(
-            "com.soundcloud.android.configuration.FeatureOperations", lpparam.classLoader,
-            "isDevelopmentMenuEnabled",
-            XC_MethodReplacement.returnConstant(true));
 
         // The return type is RxJava Observable<Boolean>, which is ProGuarded.
         // We can reliably find the return type from the method itself.
+        Object observableTrue;
         try {
             Class<?> featureOpsCls = XposedHelpers.findClass("com.soundcloud.android.configuration.FeatureOperations", lpparam.classLoader);
             Method devMenuEnabledMethod = XposedHelpers.findMethodExact(featureOpsCls, "developmentMenuEnabled");
             Class<?> observableCls = devMenuEnabledMethod.getReturnType();
-            Object observableTrue = XposedHelpers.callStaticMethod(observableCls, "just", new Class<?>[] {Object.class}, true);
-            XposedBridge.hookMethod(devMenuEnabledMethod, XC_MethodReplacement.returnConstant(observableTrue));
+            observableTrue = XposedHelpers.callStaticMethod(observableCls, "just", new Class<?>[] {Object.class}, true);
         } catch (Throwable e) {
-            Xlog.e("Failed to enable developer mode", e);
+            Xlog.e("Failed to create Observable<Boolean>(true) object", e);
+            return;
         }
+
+        findAndHookMethod(
+            "com.soundcloud.android.configuration.FeatureOperations", lpparam.classLoader,
+            "developmentMenuEnabled",
+            XC_MethodReplacement.returnConstant(observableTrue));
+
+        findAndHookMethod(
+            "com.soundcloud.android.configuration.FeatureOperations", lpparam.classLoader,
+            "isDevelopmentMenuEnabled",
+            XC_MethodReplacement.returnConstant(true));
     }
 
     @Override
@@ -182,7 +187,7 @@ public class Hook implements IXposedHookLoadPackage {
         blockStreamAds(lpparam);
         blockAppboyPushNotifications(lpparam);
         blockAppboyInAppMessages(lpparam);
-        // enableOfflineContent(lpparam);
+        enableOfflineContent(lpparam);
         // enableDeveloperMode(lpparam);
 
         Xlog.i("SoundCloud AdAway initialization complete!");
