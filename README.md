@@ -1,7 +1,13 @@
 # SoundCloud AdAway
 
-Blocks ads in the SoundCloud Android app. Also includes the functionality of
-[Stfu Appboy](https://github.com/apsun/StfuAppboy).
+Blocks (most) ads in the SoundCloud Android app.
+
+- Audio/video ads
+- SoundCloud Go popup ads
+- Promoted tracks
+- App install ads
+
+Also force enables offline downloading (experimental).
 
 ## Requirements
 
@@ -18,14 +24,10 @@ no support will be given for those versions.
 ## Disclaimer
 
 I am not responsible for any damage caused by the use of this software,
-such as having your account banned. Use at your own risk.
+up to and including having your account banned. Use at your own risk.
+
+Obviously, this app is not affiliated with or endorsed by SoundCloud.
 
 ## License
 
 Distributed under the [MIT License](http://opensource.org/licenses/MIT).
-
-## I'm still getting ads!
-
-Try opening a new playlist. This hook only prevents new ads from being
-enqueued in your playlist - it does not remove ads that are already
-in it.
