@@ -40,6 +40,13 @@ public class Hook implements IXposedHookLoadPackage {
         return XposedHelpers.callMethod(videoAd, "getAdUrn");
     }
 
+    private static boolean isStreamAd(Object streamItem) {
+        return
+            (Boolean)XposedHelpers.callMethod(streamItem, "isAd") ||
+            (Boolean)XposedHelpers.callMethod(streamItem, "isPromoted") ||
+            (Boolean)XposedHelpers.callMethod(streamItem, "isUpsell");
+    }
+
     private static void printInitInfo(XC_LoadPackage.LoadPackageParam lpparam) {
         Xlog.i("SoundCloud AdAway initializing...");
         Xlog.i("Phone manufacturer: %s", Build.MANUFACTURER);
@@ -67,7 +74,7 @@ public class Hook implements IXposedHookLoadPackage {
         printInitInfo(lpparam);
 
         try {
-            Xlog.i("Hooking insertAudioAd...");
+            Xlog.i("Hooking AdsOperations.insertAudioAd()...");
             XposedHelpers.findAndHookMethod(
                 "com.soundcloud.android.ads.AdsOperations", lpparam.classLoader,
                 "insertAudioAd",
@@ -83,7 +90,7 @@ public class Hook implements IXposedHookLoadPackage {
                     }
                 });
 
-            Xlog.i("Hooking insertVideoAd...");
+            Xlog.i("Hooking AdsOperations.insertVideoAd()...");
             XposedHelpers.findAndHookMethod(
                 "com.soundcloud.android.ads.AdsOperations", lpparam.classLoader,
                 "insertVideoAd",
@@ -99,11 +106,42 @@ public class Hook implements IXposedHookLoadPackage {
                     }
                 });
 
+            Xlog.i("Hooking StreamAdapter.addItem(int, StreamItem)...");
+            XposedHelpers.findAndHookMethod(
+                "com.soundcloud.android.stream.StreamAdapter", lpparam.classLoader,
+                "addItem",
+                int.class,
+                "com.soundcloud.android.stream.StreamItem",
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        if (isStreamAd(param.args[1])) {
+                            Xlog.i("Blocked stream ad");
+                            param.setResult(null);
+                        }
+                    }
+                });
+
+            Xlog.i("Hooking StreamAdapter.addItem(StreamItem)...");
+            XposedHelpers.findAndHookMethod(
+                "com.soundcloud.android.stream.StreamAdapter", lpparam.classLoader,
+                "addItem",
+                "com.soundcloud.android.stream.StreamItem",
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        if (isStreamAd(param.args[0])) {
+                            Xlog.i("Blocked stream ad");
+                            param.setResult(null);
+                        }
+                    }
+                });
+
             // Technically this can be done in a better way by disabling the
             // GCM receiver that calls this method in the first place, but that
             // requires access to a Context object and I don't feel like finding
             // a good way to obtain one.
-            Xlog.i("Hooking NotificationManager...");
+            Xlog.i("Hooking NotificationManagerCompat.notify()...");
             XposedHelpers.findAndHookMethod(
                 "android.support.v4.app.NotificationManagerCompat", lpparam.classLoader,
                 "notify", String.class, int.class, Notification.class,
