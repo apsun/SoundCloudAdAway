@@ -39,4 +39,8 @@ android {
             assets.srcDir "assets"
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
