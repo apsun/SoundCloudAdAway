@@ -23,17 +23,20 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        versionCode 2
-        versionName "1.1"
+        versionCode 3
+        versionName "1.2"
         minSdkVersion 4
         targetSdkVersion 25
+        buildConfigField("String", "LOG_TAG", "\"NekoSMS\"")
+        buildConfigField("int", "LOG_LEVEL", "4")
+        buildConfigField("boolean", "LOG_TO_XPOSED", "true")
     }
 
     sourceSets {
         main {
             manifest.srcFile "AndroidManifest.xml"
-            java.srcDirs = ["src"]
-            assets.srcDirs = ["assets"]
+            java.srcDir "src"
+            assets.srcDir "assets"
         }
     }
 }
