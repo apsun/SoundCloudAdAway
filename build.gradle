@@ -27,7 +27,7 @@ android {
         versionName "1.2"
         minSdkVersion 4
         targetSdkVersion 25
-        buildConfigField("String", "LOG_TAG", "\"NekoSMS\"")
+        buildConfigField("String", "LOG_TAG", "\"SoundCloudAdAway\"")
         buildConfigField("int", "LOG_LEVEL", "4")
         buildConfigField("boolean", "LOG_TO_XPOSED", "true")
     }
