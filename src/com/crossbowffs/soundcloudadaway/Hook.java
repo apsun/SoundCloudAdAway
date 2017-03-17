@@ -111,6 +111,15 @@ public class Hook implements IXposedHookLoadPackage {
             });
     }
 
+    private static void blockOverlayAds(XC_LoadPackage.LoadPackageParam lpparam) {
+        // Block overlay ads
+        findAndHookMethod(
+            "com.soundcloud.android.ads.AdOverlayController", lpparam.classLoader,
+            "shouldDisplayAdOverlay",
+            boolean.class,
+            XC_MethodReplacement.returnConstant(false));
+    }
+
     private static void blockAppboyPushNotifications(XC_LoadPackage.LoadPackageParam lpparam) {
         // Block Appboy push notifications (no, the notification settings
         // aren't enough)
@@ -185,6 +194,7 @@ public class Hook implements IXposedHookLoadPackage {
 
         blockPlayQueueAds(lpparam);
         blockStreamAds(lpparam);
+        blockOverlayAds(lpparam);
         blockAppboyPushNotifications(lpparam);
         blockAppboyInAppMessages(lpparam);
         enableOfflineContent(lpparam);
