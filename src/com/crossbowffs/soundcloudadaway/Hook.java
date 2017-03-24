@@ -12,17 +12,17 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 public class Hook implements IXposedHookLoadPackage {
     private static boolean isStreamAd(Object streamItem) {
         if ((Boolean)XposedHelpers.callMethod(streamItem, "isAd")) {
-            Xlog.d("Blocked stream item: isAd() == true");
+            Xlog.i("Blocked stream item: isAd() == true");
             return true;
         }
 
         if ((Boolean)XposedHelpers.callMethod(streamItem, "isPromoted")) {
-            Xlog.d("Blocked stream item: isPromoted() == true");
+            Xlog.i("Blocked stream item: isPromoted() == true");
             return true;
         }
 
         if ((Boolean)XposedHelpers.callMethod(streamItem, "isUpsell")) {
-            Xlog.d("Blocked stream item: isUpsell() == true");
+            Xlog.i("Blocked stream item: isUpsell() == true");
             return true;
         }
 
