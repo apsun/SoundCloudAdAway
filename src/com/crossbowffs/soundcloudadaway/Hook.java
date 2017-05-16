@@ -10,6 +10,11 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class Hook implements IXposedHookLoadPackage {
+    private static Object getOptionalAbsent(XC_LoadPackage.LoadPackageParam lpparam) {
+        Class<?> cls = XposedHelpers.findClass("com.soundcloud.java.optional.Optional", lpparam.classLoader);
+        return XposedHelpers.callStaticMethod(cls, "absent");
+    }
+
     private static boolean isStreamAd(Object streamItem) {
         if ((Boolean)XposedHelpers.callMethod(streamItem, "isAd")) {
             Xlog.i("Blocked stream item: isAd() == true");
@@ -35,14 +40,14 @@ public class Hook implements IXposedHookLoadPackage {
             "com.soundcloud.android.ads.AdsOperations", lpparam.classLoader,
             "insertAudioAd",
             "com.soundcloud.android.playback.TrackQueueItem",
-            "com.soundcloud.android.ads.ApiAudioAd",
+            "com.soundcloud.android.ads.AudioAd$ApiModel",
             Xutil.doNothingAndLog());
 
         Xutil.findAndHookMethod(
             "com.soundcloud.android.ads.AdsOperations", lpparam.classLoader,
             "insertVideoAd",
             "com.soundcloud.android.playback.TrackQueueItem",
-            "com.soundcloud.android.ads.ApiVideoAd",
+            "com.soundcloud.android.ads.VideoAd$ApiModel",
             Xutil.doNothingAndLog());
     }
 
@@ -88,7 +93,7 @@ public class Hook implements IXposedHookLoadPackage {
         Xutil.findAndHookMethod(
             "com.soundcloud.android.ads.AdsOperations", lpparam.classLoader,
             "applyInterstitialAd",
-            "com.soundcloud.android.ads.ApiInterstitial",
+            "com.soundcloud.android.ads.InterstitialAd$ApiModel",
             "com.soundcloud.android.playback.TrackQueueItem",
             Xutil.doNothingAndLog());
     }
@@ -128,6 +133,37 @@ public class Hook implements IXposedHookLoadPackage {
             XC_MethodReplacement.returnConstant(true));
     }
 
+    private static void blockApiAdWrapperAds(XC_LoadPackage.LoadPackageParam lpparam) {
+        // Try to block ads a little further upstream in case
+        // some of the others fail (reundancy is key here)
+        Object absent = getOptionalAbsent(lpparam);
+
+        Xutil.findAndHookMethod(
+            "com.soundcloud.android.ads.AutoValue_ApiAdWrapper", lpparam.classLoader,
+            "appInstall",
+            Xutil.returnConstantAndLog(absent));
+
+        Xutil.findAndHookMethod(
+            "com.soundcloud.android.ads.AutoValue_ApiAdWrapper", lpparam.classLoader,
+            "audioAd",
+            Xutil.returnConstantAndLog(absent));
+
+        Xutil.findAndHookMethod(
+            "com.soundcloud.android.ads.AutoValue_ApiAdWrapper", lpparam.classLoader,
+            "interstitial",
+            Xutil.returnConstantAndLog(absent));
+
+        Xutil.findAndHookMethod(
+            "com.soundcloud.android.ads.AutoValue_ApiAdWrapper", lpparam.classLoader,
+            "videoAd",
+            Xutil.returnConstantAndLog(absent));
+
+        Xutil.findAndHookMethod(
+            "com.soundcloud.android.ads.AutoValue_ApiAdWrapper", lpparam.classLoader,
+            "visualPrestitial",
+            Xutil.returnConstantAndLog(absent));
+    }
+
     @Override
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         if (!"com.soundcloud.android".equals(lpparam.packageName)) {
@@ -144,6 +180,7 @@ public class Hook implements IXposedHookLoadPackage {
         blockAppboyPushNotifications(lpparam);
         blockAppboyInAppMessages(lpparam);
         enableOfflineContent(lpparam);
+        blockApiAdWrapperAds(lpparam);
 
         Xlog.i("SoundCloud AdAway initialization complete!");
     }
